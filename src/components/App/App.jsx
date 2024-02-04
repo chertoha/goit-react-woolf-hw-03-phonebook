@@ -6,7 +6,8 @@ import Section from 'components/Section';
 import { Component } from 'react';
 import { filterList } from 'utils/filterList';
 import { MainHeading } from './App.styled';
-import Storage from 'services/storage';
+
+const STORAGE_KEY = 'contacts';
 
 const initialContacts = [
   { id: 'id-1', name: 'Rosie Simpson', tel: '459-12-56' },
@@ -16,26 +17,22 @@ const initialContacts = [
 ];
 
 class App extends Component {
-  constructor() {
-    super();
-    this.storage = new Storage('contacts');
-  }
-
   state = {
     contacts: [],
     filter: '',
   };
 
   componentDidMount() {
-    this.setState(prevState => ({
-      ...prevState,
-      contacts: this.storage.get() || initialContacts,
-    }));
+    const storageValue = localStorage.getItem(STORAGE_KEY);
+
+    this.setState({
+      contacts: storageValue ? JSON.parse(storageValue) : initialContacts,
+    });
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps, prevState) {
     if (this.state.contacts !== prevState.contacts) {
-      this.storage.set(this.state.contacts);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state.contacts));
     }
   }
 
@@ -50,19 +47,17 @@ class App extends Component {
     }
 
     this.setState(prevState => ({
-      ...prevState,
       contacts: [...prevState.contacts, contact],
     }));
   };
 
   onChangeFilterHandler = e => {
     const { value } = e.target;
-    this.setState(prevState => ({ ...prevState, filter: value }));
+    this.setState({ filter: value });
   };
 
   onDeleteContactHandler = contactId => {
     this.setState(prevState => ({
-      ...prevState,
       contacts: [...prevState.contacts.filter(({ id }) => id !== contactId)],
     }));
   };
